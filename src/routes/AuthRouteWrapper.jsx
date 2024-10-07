@@ -4,12 +4,14 @@ import { useEffect } from "react";
 
 const AuthRouteWrapper = ({ children }) => {
   const navigate = useNavigate();
-  const loggedIn = useSelector((state) => state.loggedIn);
+  const { authStatus } = useSelector((state) => state.auth);
+
   useEffect(() => {
-    if (loggedIn) {
+    if (authStatus === "SignedIn") {
       navigate("/user");
     }
-  }, [loggedIn]);
+  }, [authStatus]);
+
   return <>{children}</>;
 };
 

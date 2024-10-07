@@ -1,47 +1,57 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import profile from "../../../assets/profile.png";
 import logo from "../../../assets/logo.png";
 import logoutImage from "../../../assets/logout.png";
-import { useSelector, useDispatch } from "react-redux";
-import { signOut } from "../../../redux/features/authSlice";
-import { useState } from "react";
 import menu from "../../../assets/menu-right.png";
 import close from "../../../assets/close.png";
+import { useSelector, useDispatch } from "react-redux";
+import { signOut } from "../../../redux/features/authSlice";
 
 const Header = ({ showSideBar, setShowSideBar }) => {
-  const username = useSelector((state) => state.username);
+  const user = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const [selectedImage, setSelectedImage] = useState(null);
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
 
+  // Handle profile image change
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       const imageUrl = URL.createObjectURL(file);
       setSelectedImage(imageUrl);
-      return () => URL.revokeObjectURL(imageUrl);
     }
   };
+
+  // Cleanup the object URL on component unmount
+  useEffect(() => {
+    return () => {
+      if (selectedImage) {
+        URL.revokeObjectURL(selectedImage);
+      }
+    };
+  }, [selectedImage]);
 
   // Handle scroll events to show/hide the header
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > lastScrollY.current) {
-        // Scrolling down
-        setIsVisible(false);
+        setIsVisible(false); // Hide header when scrolling down
       } else {
-        // Scrolling up
-        setIsVisible(true);
+        setIsVisible(true); // Show header when scrolling up
       }
       lastScrollY.current = window.scrollY;
     };
 
-    window.addEventListener("scroll", handleScroll);
+    const throttledScroll = () => {
+      requestAnimationFrame(handleScroll);
+    };
+
+    window.addEventListener("scroll", throttledScroll);
 
     // Cleanup the event listener on component unmount
     return () => {
-      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("scroll", throttledScroll);
     };
   }, []);
 
@@ -58,7 +68,10 @@ const Header = ({ showSideBar, setShowSideBar }) => {
 
       {/* User profile and logout button section */}
       <section className="gap-10 hidden md:flex">
-        <button className="items-center gap-5 hidden md:flex">
+        <button
+          className="items-center gap-5 hidden md:flex"
+          aria-label="Profile"
+        >
           <label htmlFor="fileInput">
             <img
               className={`${
@@ -78,16 +91,17 @@ const Header = ({ showSideBar, setShowSideBar }) => {
             onChange={handleImageChange}
           />
           <span className="font-[Roboto] text-xs font-bold uppercase text-[#6B6B6B] -ml-3">
-            {username}
+            {user.firstName} {user.lastName}
           </span>
         </button>
 
         <button
           className="flex items-center gap-2"
           onClick={() => dispatch(signOut())}
+          aria-label="Logout"
         >
           <span className="font-[Roboto] text-xs font-bold uppercase text-[#6B6B6B] -ml-3">
-            logout
+            Logout
           </span>
           <img
             className="w-[20px] h-[20px]"
@@ -97,12 +111,18 @@ const Header = ({ showSideBar, setShowSideBar }) => {
         </button>
       </section>
 
+      {/* Sidebar toggle button for mobile view */}
       <div className="md:hidden">
         <button
           onClick={() => setShowSideBar(!showSideBar)}
           className="p-2 w-[40px] rounded-full bg-green-300"
+          aria-label="Toggle Sidebar"
         >
-          <img className="w-6" src={showSideBar ? close : menu} alt="" />
+          <img
+            className="w-6"
+            src={showSideBar ? close : menu}
+            alt="Sidebar Toggle"
+          />
         </button>
       </div>
     </header>
