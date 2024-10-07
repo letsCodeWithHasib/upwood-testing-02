@@ -1,8 +1,8 @@
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../../assets/logo.png";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signIn } from "../../redux/features/authSlice";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -19,24 +19,14 @@ const Login = () => {
     if (loginFailed) setLoginFailed(false); // Reset the error state on input change
   };
 
-  const onSubmitHandler = (event) => {
+  const onSubmitHandler = async (event) => {
     event.preventDefault();
-
-    // Replace this with an actual API call later
-    if (
-      formData.email === "mohdhasib2001@gmail.com" &&
-      formData.password === "12345"
-    ) {
-      dispatch(login(formData));
-      // Optionally, navigate to a different page on successful login
-    } else {
+    const { email, password } = formData;
+    const res = await dispatch(signIn({ email, password }));
+    console.log(res);
+    if (res.error) {
       setLoginFailed(true);
     }
-
-    setFormData({
-      email: "",
-      password: "",
-    });
   };
 
   const onRequestHandler = (event) => {

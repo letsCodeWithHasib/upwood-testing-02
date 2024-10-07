@@ -5,12 +5,11 @@ import {
   signInWithEmail,
   getSession,
   signOut as cognitoSignOut,
-  verifyCode as confirmSignUp, // Import confirmSignUp function
+  verifyCode as confirmSignUp,
 } from "../../libs/cognito";
 
 const initialState = {
-  sessionInfo: null,
-  user: null,
+  sessionInfo: null, // Store only necessary session info
   authStatus: "Loading", // can be 'Loading', 'SignedIn', 'SignedOut', 'Error', 'Verified', 'VerificationFailed'
   error: null, // To store error messages
 };
@@ -21,7 +20,13 @@ export const signIn = createAsyncThunk(
   async ({ email, password }, { rejectWithValue }) => {
     try {
       const session = await signInWithEmail(email, password);
-      return session;
+      console.log(session);
+      // Return only necessary data, e.g., tokens or user info
+      return {
+        accessToken: session.getAccessToken().getJwtToken(),
+        idToken: session.getIdToken().getJwtToken(),
+        // Add other necessary fields
+      };
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -52,7 +57,11 @@ export const fetchSession = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const session = await getSession();
-      return session;
+      return {
+        accessToken: session.getAccessToken().getJwtToken(),
+        idToken: session.getIdToken().getJwtToken(),
+        // Add other necessary fields
+      };
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -70,7 +79,6 @@ export const verifyCode = createAsyncThunk(
   async ({ email, code }, { rejectWithValue }) => {
     try {
       const response = await confirmSignUp(email, code);
-      console.log(response);
       return response;
     } catch (error) {
       return rejectWithValue(error.message);
@@ -86,7 +94,7 @@ const authSlice = createSlice({
     builder
       .addCase(signIn.fulfilled, (state, action) => {
         state.authStatus = "SignedIn";
-        state.sessionInfo = action.payload;
+        state.sessionInfo = action.payload; // Store only the necessary fields
         state.error = null;
       })
       .addCase(signIn.rejected, (state, action) => {
@@ -101,7 +109,7 @@ const authSlice = createSlice({
       })
       .addCase(fetchSession.fulfilled, (state, action) => {
         state.authStatus = "SignedIn";
-        state.sessionInfo = action.payload;
+        state.sessionInfo = action.payload; // Store only the necessary fields
         state.error = null;
       })
       .addCase(fetchSession.rejected, (state, action) => {
@@ -115,12 +123,12 @@ const authSlice = createSlice({
         state.error = null;
       })
       .addCase(verifyCode.fulfilled, (state) => {
-        state.authStatus = "Verified"; // Update status to indicate successful verification
+        state.authStatus = "Verified";
         state.error = null;
       })
       .addCase(verifyCode.rejected, (state, action) => {
-        state.authStatus = "VerificationFailed"; // Update status to indicate failed verification
-        state.error = action.payload; // Store the error message
+        state.authStatus = "VerificationFailed";
+        state.error = action.payload;
       });
   },
 });

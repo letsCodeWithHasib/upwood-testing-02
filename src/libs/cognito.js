@@ -5,9 +5,11 @@ import {
   CognitoUserPool,
 } from "amazon-cognito-identity-js";
 
+// Uncomment these lines to use environment variables for User Pool ID and Client ID
 // const userPoolId = process.env.REACT_APP_USERPOOL_ID;
 // const clientId = process.env.REACT_APP_CLIENT_ID;
 
+// Check if User Pool ID and Client ID are defined
 // if (!userPoolId || !clientId) {
 //   throw new Error(
 //     "User Pool ID or Client ID is not defined in the environment variables."
@@ -58,22 +60,9 @@ export async function signUpUserWithEmail(
 ) {
   return new Promise((resolve, reject) => {
     const attributeList = [
-      new CognitoUserAttribute({
-        Name: "email",
-        Value: email,
-      }),
-      // new CognitoUserAttribute({
-      //   Name: "password",
-      //   Value: password,
-      // }),
-      new CognitoUserAttribute({
-        Name: "given_name",
-        Value: given_name,
-      }),
-      new CognitoUserAttribute({
-        Name: "family_name",
-        Value: family_name,
-      }),
+      new CognitoUserAttribute({ Name: "email", Value: email }),
+      new CognitoUserAttribute({ Name: "given_name", Value: given_name }),
+      new CognitoUserAttribute({ Name: "family_name", Value: family_name }),
     ];
 
     userPool.signUp(email, password, attributeList, [], (err, res) => {
